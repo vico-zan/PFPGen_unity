@@ -23,11 +23,15 @@ namespace PFP {
             //Material material = (Material)AssetDatabase.LoadAssetAtPath(folderPath + "/PFPMat.mat", typeof(Material));
 
             int amount = 1;
+            List<List<int>> parts = new List<List<int>>();
             for(int layerid = 0; layerid < config._layer.Length; ++layerid) {
-                amount *= config._layer[layerid]._countLimit;
+                parts.Add(new List<int>(config._layer[layerid]._weight.Length));
+                amount *= config._layer[layerid]._weight.Length;
                 config._layer[layerid]._weightAmount = 0;
-                for(int i = 0; i < config._layer[layerid]._weight.Length; ++i)
+                for(int i = 0; i < config._layer[layerid]._weight.Length; ++i) {
+                    //parts[layerid].Add(config._layer[layerid]);
                     config._layer[layerid]._weightAmount += config._layer[layerid]._weight[i];
+                }
             }
 
             if(config._amount > amount && config._mode != PFPGenMode.One2One) {
@@ -42,8 +46,8 @@ namespace PFP {
                     int curId = 0;
                     switch(config._mode) {
                         case PFPGenMode.Sequence: {
-                                curId = id % config._layer[layerid]._countLimit + 1;
-                                id /= config._layer[layerid]._countLimit;
+                                curId = id % config._layer[layerid]._weight.Length + 1;
+                                id /= config._layer[layerid]._weight.Length;
                             }
                             break;
                         case PFPGenMode.One2One: {

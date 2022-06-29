@@ -32,7 +32,6 @@ public class PFPConfig : ScriptableObject {
 [Serializable]
 public struct PFPLayer {
     public string _name;
-    public int _countLimit;
     public int[] _weight;
     [HideInInspector]
     public int _weightAmount;
