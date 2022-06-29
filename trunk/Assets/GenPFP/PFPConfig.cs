@@ -10,9 +10,9 @@ public enum PFPGenMode {
 }
 
 [Serializable]
-[CreateAssetMenu(fileName = "PFPGenTool", menuName = "PFPGenTool/PFPConfig", order = 0)]
+[CreateAssetMenu(fileName = "PFPConfig", menuName = "PFPConfig", order = 0)]
 public class PFPConfig : ScriptableObject {
-    [Header("Input Settings")]
+    //[Header("Input Settings")]
     public PFPGenMode _mode;
     public bool _debug;
     public int _startIndex;
@@ -22,7 +22,7 @@ public class PFPConfig : ScriptableObject {
 
     public PFPLayer[] _layer;
 
-    [Header("Output Settings")]
+    //[Header("Output Settings")]
     [Range(1, 2048)]
     public int _width;
     [Range(1, 2048)]
