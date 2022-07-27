@@ -27,12 +27,21 @@ public class PFPConfig : ScriptableObject {
     public int _width;
     [Range(1, 2048)]
     public int _height;
+
+    [Header("Update URI")]
+    public string _imageURI;
+}
+
+[Serializable]
+public struct PFPLayerDetail {
+    public string _name;
+    public int _weight;
 }
 
 [Serializable]
 public struct PFPLayer {
     public string _name;
-    public int[] _weight;
+    public PFPLayerDetail[] _layerDetail;
     [HideInInspector]
     public int _weightAmount;
 }
