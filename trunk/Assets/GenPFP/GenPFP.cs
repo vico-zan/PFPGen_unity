@@ -6,13 +6,11 @@ using UnityEngine;
 
 namespace PFP {
     public class GenPFP {
-        const string DefaultURI = "DefaultURI";
-
         [MenuItem("Assets/PFPUpdateURI", false, 2)]//MenuPath
         public static void PFPUpdateURI() {
             PFPConfig config = (PFPConfig)AssetDatabase.LoadAssetAtPath(AssetDatabase.GetAssetPath(Selection.activeObject), typeof(PFPConfig));
+            if (config._imageOldURI == "") return;
             string filePath = config._rootPath;
-            string uri = config._imageURI;
             DirectoryInfo folder = new DirectoryInfo(filePath + "/pfp/metadata/");
             Debug.Log(folder.FullName);
             foreach (FileInfo file in folder.GetFiles()) {
@@ -25,8 +23,8 @@ namespace PFP {
                     using (StreamReader sr = file.OpenText()) {
                         string s = "";
                         while ((s = sr.ReadLine()) != null) {
-                            if (s.Contains(DefaultURI)) {
-                                s = s.Replace(DefaultURI, config._imageURI);
+                            if (s.Contains(config._imageOldURI)) {
+                                s = s.Replace(config._imageOldURI, config._imageNewURI);
                             }
                             fullStr += s;
                         }
@@ -77,6 +75,7 @@ namespace PFP {
             Dictionary<string, int> pfps = new Dictionary<string, int>();
             for (int i = 0; i < config._amount;) {
                 int id = i;
+                List<int> pfpconfig = new List<int>();
                 string pfpname = "";
                 for (int layerid = 0; layerid < config._layer.Length; ++layerid) {
                     int curId = 0;
@@ -104,9 +103,10 @@ namespace PFP {
                     }
 
                     string srcPath = folderPath + "/src/" + config._layer[layerid]._name + "/" + +curId + ".png";
-                    Debug.Log(srcPath);
+                    //Debug.Log(srcPath);
                     Texture2D tex = (Texture2D)AssetDatabase.LoadAssetAtPath(srcPath, typeof(Texture2D));
                     if (tex == null) {
+                        pfpconfig.Add(0);
                         pfpname += 0 + "-";
                         continue;
                     }
@@ -115,6 +115,7 @@ namespace PFP {
                         Graphics.Blit(tex, renderTexture, material);
                         Resources.UnloadAsset(tex);
 
+                        pfpconfig.Add(curId);
                         pfpname += curId + "-";
                     }
                 }
@@ -129,13 +130,13 @@ namespace PFP {
                 outTexture.ReadPixels(new Rect(0, 0, width, height), 0, 0, false);
                 outTexture.Apply();
 
-                if (!Directory.Exists(folderPath + "/pfp/")) {
-                    Directory.CreateDirectory(folderPath + "/pfp/");
+                if (!Directory.Exists(folderPath + "/pfp/img")) {
+                    Directory.CreateDirectory(folderPath + "/pfp/img");
                 }
 
                 Texture2D desTexture = ScaleTexture(outTexture, width, height);
                 byte[] bytes = desTexture.EncodeToPNG();
-                File.WriteAllBytes(folderPath + "/pfp/"
+                File.WriteAllBytes(folderPath + "/pfp/img/"
                     + (i + config._startIndex)
                     + (config._debug ? ("@" + pfpname) : "")
                     + ".png", bytes);
@@ -154,13 +155,30 @@ namespace PFP {
                 if (config._debug) {
                     bw.WriteLine("{");
                     bw.WriteLine("  \"name\": \"" + pfpname + "\",");
-                    bw.WriteLine("  \"image\": \"" + DefaultURI + "\",");
+                    bw.WriteLine("  \"description\": \"" + config._description + "\",");
+                    bw.WriteLine("  \"image\": \"" + config._imageOldURI + "\",");
+                    bw.WriteLine("  \"attributes\": [");
+                    for (int j = 0; j < pfpconfig.Count; ++j) {
+                        if (pfpconfig[j] != 0) {
+                            //Debug.Log(config._layer[j]._layerDetail[pfpconfig[j] - 1]._name);
+                            bw.WriteLine("      {\"trait_type\": \"" + config._layer[j]._name + "\", \"value\": \"" + config._layer[j]._layerDetail[pfpconfig[j]-1]._name + "\"},");
+                        }
+                    }
+                    bw.WriteLine("  ]");
                     bw.WriteLine("}");
                 }
                 else {
                     bw.Write("{");
-                    bw.Write("\"name\": \"" + pfpname + "\",");
-                    bw.Write("\"image\": \"" + (config._imageURI.Length == 0 ? DefaultURI : config._imageURI) + "\",");
+                    bw.Write("\"name\":\"" + pfpname + "\",");
+                    bw.Write("\"description\":\"" + config._description + "\",");
+                    bw.Write("\"image\":\"" + config._imageOldURI + "\",");
+                    bw.Write("\"attributes\":[");
+                    for (int j = 0; j < pfpconfig.Count; ++j) {
+                        if (pfpconfig[j] != 0) {
+                            bw.Write("{\"trait_type\":\"" + config._layer[j]._name + "\",\"value\":\"" + config._layer[j]._layerDetail[pfpconfig[j]-1]._name + "\"},");
+                        }
+                    }
+                    bw.Write("]");
                     bw.Write("}");
                 }
                 bw.Close();
